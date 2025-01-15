@@ -1,9 +1,11 @@
 name: App Build
 on: workflow_dispatch
-    
+
 jobs:
   build:
     runs-on: ["self-hosted", "Linux", "X64"]
+    outputs:
+      image_tag: ${{ steps.set-outputs.outputs.short_sha }}
 
     steps:
       - name: Checkout repository
@@ -12,6 +14,10 @@ jobs:
       - name: List files
         run: ls -al
 
+      - name: Set outputs
+        id: set-outputs
+        run: echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
       - name: Login to Amazon ECR
         run: |
           aws ecr get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin ${{ vars.ECR_REPO_URL }}
@@ -19,8 +25,8 @@ jobs:
       - name: Build, tag, and push docker image to Amazon ECR
         env:
           REGISTRY: ${{ vars.ECR_REPO_URL }}
-          REPOSITORY: ${{ vars.REPO_NAME }}
-          IMAGE_TAG: ${{ github.sha }}
+          REPOSITORY: test_app
+          IMAGE_TAG: ${{ steps.set-outputs.outputs.short_sha }}
         run: |
             docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
             docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
