@@ -50,8 +50,7 @@ jobs:
           sed -i "s%image:.*%image: $REGISTRY/$REPOSITORY:$IMAGE_TAG%" kubernetes/deployment.yml
           
           # Apply both deployment and service
-          kubectl apply -f kubernetes/deployment.yaml
-          kubectl apply -f kubernetes/service.yaml
+          kubectl apply -f kubernetes/deployment.yml
           
           # Wait for deployment rollout
           kubectl rollout status deployment/test-app -n default
