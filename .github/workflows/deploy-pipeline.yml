@@ -21,11 +21,16 @@ jobs:
           repository: ${{ github.repository }}
           run-id: ${{ inputs.build_run_id }}
 
+
       - name: Read commit hash
         id: read-commit-hash
         run: |
           export COMMIT_HASH=$(cat commit_hash.txt)
           echo "commit_hash=$COMMIT_HASH" >> $GITHUB_ENV
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+  
 
       - name: Verify image exists
         env:
