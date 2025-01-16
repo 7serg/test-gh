@@ -5,7 +5,7 @@ jobs:
   build:
     runs-on: ["self-hosted", "Linux", "X64"]
     outputs:
-      image_tag: ${{ steps.set-outputs.outputs.short_sha }}
+      image_tag: ${{ steps.define-commit-hash.outputs.short_sha }}
 
     steps:
       - name: Checkout repository
@@ -15,8 +15,10 @@ jobs:
         run: ls -al
 
       - name: Set outputs
-        id: set-outputs
-        run: echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        id: define-commit-hash
+        run: |
+          echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "$(git rev-parse --short HEAD)" > commit_hash.txt
 
       - name: Login to Amazon ECR
         run: |
@@ -26,10 +28,17 @@ jobs:
         env:
           REGISTRY: ${{ vars.ECR_REPO_URL }}
           REPOSITORY: test_app
-          IMAGE_TAG: ${{ steps.set-outputs.outputs.short_sha }}
+          IMAGE_TAG: ${{ steps.define-commit-hash.outputs.short_sha }}
         run: |
             docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
             docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+      - name: Upload commit hash artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: commit-hash
+          path: commit_hash.txt
+          retention-days: 5
 
     #   - name: Configure AWS Credentials
     #     uses: aws-actions/configure-aws-credentials@v2
