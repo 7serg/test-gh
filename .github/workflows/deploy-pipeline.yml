@@ -47,7 +47,7 @@ jobs:
           echo "Deploying image: $REGISTRY/$REPOSITORY:$IMAGE_TAG"
           
           # Replace the image in deployment file
-          sed -i "s%image:.*%image: $REGISTRY/$REPOSITORY:$IMAGE_TAG%" kubernetes/deployment.yaml
+          sed -i "s%image:.*%image: $REGISTRY/$REPOSITORY:$IMAGE_TAG%" kubernetes/deployment.yml
           
           # Apply both deployment and service
           kubectl apply -f kubernetes/deployment.yaml
