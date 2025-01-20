@@ -100,8 +100,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
     
-      - name: Setup AWS cli
-        uses: isbang/setup-awscli@v0.1.0
+      - name: setup awscli
+        uses: hsupu@setup-awscli@v1
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4 
