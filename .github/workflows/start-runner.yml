@@ -99,9 +99,15 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v4
+
+
+      - name: Setup the Python Environment
+        uses: Qwerty-133/python-setup@v1
+        with:
+          python-version: '3.11'
     
-      - name: setup awscli
-        uses: hsupu@setup-awscli@v1
+      - name: Setup AWS cli
+        uses: isbang/setup-awscli@v0.1.0
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4 
