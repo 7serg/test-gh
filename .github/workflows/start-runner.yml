@@ -58,7 +58,7 @@ jobs:
 
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4 # More information on this action can be found below in the 'AWS Credentials' section
+        uses: aws-actions/configure-aws-credentials@v4 
         with:
             role-to-assume: arn:aws:iam::585768185180:role/github_oidc_role
             aws-region: ${{ vars.AWS_REGION }}
@@ -82,31 +82,100 @@ jobs:
             docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
 
-#   deploy:
-#     name: Deploy to EKS
-#     runs-on: ${{ needs.start-runner.outputs.label }}
+  deploy:
+    name: Deploy to EKS
+    needs: [start-runner, build]
+    runs-on: ${{ needs.start-runner.outputs.label }}
+    permissions:
+      id-token: write
+      contents: read
 
-#     steps:
+    steps:
 
+      - name: Setup kubectl on the node
+        uses: azure/setup-kubectl@v4
+        id: install
+               
 
-
-#         - name: Read commit hash
-#         id: read-commit-hash
-#         run: |
-#             export COMMIT_HASH=$(cat commit_hash.txt)
-#             echo "commit_hash=$COMMIT_HASH" >> $GITHUB_ENV
-
-#         - name: Checkout repository
-#         uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
     
 
-#         - name: Verify image exists
-#         env:
-#             REGISTRY: ${{ vars.ECR_REPO_URL }}
-#             REPOSITORY: ${{ vars.REPO_NAME }}
-#             IMAGE_TAG: ${{ env.commit_hash }}
-#         run: |
-#             aws ecr describe-images \
-#             --repository-name ${REPOSITORY} \
-#             --image-ids imageTag=${IMAGE_TAG} \
-#             || { echo "Image tag ${IMAGE_TAG} not found in ECR"; exit 1; }            
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4 
+        with:
+            role-to-assume: arn:aws:iam::585768185180:role/github_oidc_role
+            aws-region: ${{ vars.AWS_REGION }}
+
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2        
+
+      - name: Update kubeconfig for EKS
+        run: |
+            echo "Updating kubeconfig for EKS..."
+            aws eks update-kubeconfig \
+            --region eu-central-1 \
+            --name ${{ vars.CLUSTER_NAME }}   
+
+      - name: Verify image exists
+        env:
+            REGISTRY: ${{ vars.ECR_REPO_URL }}
+            REPOSITORY: ${{ vars.REPO_NAME }}
+            IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
+        run: |
+            aws ecr describe-images \
+            --repository-name ${REPOSITORY} \
+            --image-ids imageTag=${IMAGE_TAG} \
+            || { echo "Image tag ${IMAGE_TAG} not found in ECR"; exit 1; }    
+            
+
+            - name: Deploy application
+            env:
+              REGISTRY: ${{ vars.ECR_REPO_URL }}
+              REPOSITORY: test_app
+              IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
+            run: |
+              echo "Deploying image: $REGISTRY/$REPOSITORY:$IMAGE_TAG"
+              
+              # Replace the image in deployment file
+              sed -i "s%image:.*%image: $REGISTRY/$REPOSITORY:$IMAGE_TAG%" kubernetes/deployment.yml
+              
+              # Apply both deployment and service
+              kubectl apply -f kubernetes/deployment.yml
+              
+              # Wait for deployment rollout
+              kubectl rollout status deployment/test-app -n default
+              
+              # Get LoadBalancer URL
+              echo "Waiting for LoadBalancer to be ready..."
+              sleep 60
+              echo "LoadBalancer URL:"
+              kubectl get service test-app-service -n default -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+
+  stop-runner:
+    name: Stop self-hosted EC2 runner
+    needs: [start-runner, build, deploy]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    if: ${{ always() }} 
+
+    steps:
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4 
+        with:
+            role-to-assume: arn:aws:iam::585768185180:role/github_oidc_role
+            aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Stop EC2 runner
+        uses: machulav/ec2-github-runner@v2
+        with:
+          mode: stop
+          github-token: ${{ secrets.GH_PAT }}
+          label: ${{ needs.start-runner.outputs.label }}
+          ec2-instance-id: ${{ needs.start-runner.outputs.ec2-instance-id }}
+    
