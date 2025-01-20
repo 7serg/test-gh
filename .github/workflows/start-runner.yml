@@ -37,6 +37,9 @@ jobs:
     name: Build image
     needs: start-runner 
     runs-on: ${{ needs.start-runner.outputs.label }}
+    permissions:
+      id-token: write
+      contents: read
     outputs:
         image_tag: ${{ steps.define-commit-hash.outputs.short_sha }}
 
