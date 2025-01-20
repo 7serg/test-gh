@@ -147,12 +147,12 @@ jobs:
             || { echo "Image tag ${IMAGE_TAG} not found in ECR"; exit 1; }    
             
 
-            - name: Deploy application
-            env:
-              REGISTRY: ${{ vars.ECR_REPO_URL }}
-              REPOSITORY: test_app
-              IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
-            run: |
+      - name: Deploy application
+        env:
+            REGISTRY: ${{ vars.ECR_REPO_URL }}
+            REPOSITORY: test_app
+            IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
+        run: |
               echo "Deploying image: $REGISTRY/$REPOSITORY:$IMAGE_TAG"
               
               # Replace the image in deployment file
