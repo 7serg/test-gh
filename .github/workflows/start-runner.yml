@@ -27,7 +27,7 @@ jobs:
         uses: machulav/ec2-github-runner@v2
         with:
           mode: start
-          github-token: ${{ github.token }}
+          github-token: ${{ secrets.GH_PAT }}
           ec2-image-id: ${{ vars.RUNNER_AMI }}
           ec2-instance-type: t2.micro
           subnet-id: ${{ vars.SUBNET_ID }}
