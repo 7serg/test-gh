@@ -33,9 +33,6 @@ jobs:
   start-ec2-runner:
     name: Start EC2 Runner
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
     outputs:
         label: ${{ steps.start-ec2-runner.outputs.label }}
         instance-id: ${{ steps.start-ec2-runner.outputs.ec2-instance-id }}
