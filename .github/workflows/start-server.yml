@@ -1,0 +1,60 @@
+name: Start Server
+
+on:
+  workflow_call:
+    inputs:
+      aws-region:
+        required: true
+        type: string
+      role-to-assume:
+        required: true
+        type: string
+      runner-ami:
+        required: true
+        type: string
+      instance-type:
+        required: true
+        type: string
+      subnet-id:
+        required: true
+        type: string
+      security-group-id:
+        required: true
+        type: string
+    outputs:
+      runner-label:
+        description: "The label of the started runner"
+        value: ${{ jobs.start-ec2-runner.outputs.label }}
+      instance-id:
+        description: "The EC2 instance ID"
+        value: ${{ jobs.start-ec2-runner.outputs.ec2-instance-id }}
+
+jobs:
+  start-ec2-runner:
+    name: Start EC2 Runner
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    outputs:
+        label: ${{ steps.start-ec2-runner.outputs.label }}
+        instance-id: ${{ steps.start-ec2-runner.outputs.ec2-instance-id }}
+
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ inputs.aws-region }}
+          role-to-assume: ${{ inputs.role-to-assume }}
+
+      - name: Start EC2 runner
+        id: start-ec2-runner
+        uses: machulav/ec2-github-runner@v2
+        with:
+          mode: start
+          github-token: ${{ secrets.GH_PAT }}
+          ec2-image-id: ${{ inputs.runner-ami }}
+          ec2-instance-type: ${{ inputs.instance-type }}
+          subnet-id: ${{ inputs.subnet-id }}
+          security-group-id: ${{ inputs.security-group-id }}
