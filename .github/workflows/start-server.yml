@@ -2,6 +2,9 @@ name: Start Server
 
 on:
   workflow_call:
+    secrets:
+      github-token:
+        required: true
     inputs:
       aws-region:
         required: true
@@ -50,7 +53,7 @@ jobs:
         uses: machulav/ec2-github-runner@v2
         with:
           mode: start
-          github-token: ${{ secrets.GH_PAT }}
+          github-token: ${{ secrets.github-token }}
           ec2-image-id: ${{ inputs.runner-ami }}
           ec2-instance-type: ${{ inputs.instance-type }}
           subnet-id: ${{ inputs.subnet-id }}
