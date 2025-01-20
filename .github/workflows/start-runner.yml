@@ -82,31 +82,31 @@ jobs:
             docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
 
-  deploy:
-    name: Deploy to EKS
-    runs-on: ${{ needs.start-runner.outputs.label }}
+#   deploy:
+#     name: Deploy to EKS
+#     runs-on: ${{ needs.start-runner.outputs.label }}
 
-    steps:
+#     steps:
 
 
 
-        - name: Read commit hash
-        id: read-commit-hash
-        run: |
-            export COMMIT_HASH=$(cat commit_hash.txt)
-            echo "commit_hash=$COMMIT_HASH" >> $GITHUB_ENV
+#         - name: Read commit hash
+#         id: read-commit-hash
+#         run: |
+#             export COMMIT_HASH=$(cat commit_hash.txt)
+#             echo "commit_hash=$COMMIT_HASH" >> $GITHUB_ENV
 
-        - name: Checkout repository
-        uses: actions/checkout@v4
+#         - name: Checkout repository
+#         uses: actions/checkout@v4
     
 
-        - name: Verify image exists
-        env:
-            REGISTRY: ${{ vars.ECR_REPO_URL }}
-            REPOSITORY: ${{ vars.REPO_NAME }}
-            IMAGE_TAG: ${{ env.commit_hash }}
-        run: |
-            aws ecr describe-images \
-            --repository-name ${REPOSITORY} \
-            --image-ids imageTag=${IMAGE_TAG} \
-            || { echo "Image tag ${IMAGE_TAG} not found in ECR"; exit 1; }            
+#         - name: Verify image exists
+#         env:
+#             REGISTRY: ${{ vars.ECR_REPO_URL }}
+#             REPOSITORY: ${{ vars.REPO_NAME }}
+#             IMAGE_TAG: ${{ env.commit_hash }}
+#         run: |
+#             aws ecr describe-images \
+#             --repository-name ${REPOSITORY} \
+#             --image-ids imageTag=${IMAGE_TAG} \
+#             || { echo "Image tag ${IMAGE_TAG} not found in ECR"; exit 1; }            
