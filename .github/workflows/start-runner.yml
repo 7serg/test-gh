@@ -118,10 +118,18 @@ jobs:
 
     steps:
 
-      - name: Setup kubectl on the node
-        uses: azure/setup-kubectl@v4
-        id: install
+    #   - name: Setup kubectl on the node
+    #     uses: azure/setup-kubectl@v4
+    #     id: install
                
+      - name: Install kubectl
+        run: |
+            echo "Installing kubectl..."
+            curl -LO "https://dl.k8s.io/release/v1.24.0/bin/linux/amd64/kubectl"
+            chmod +x ./kubectl
+            sudo mv ./kubectl /usr/local/bin/kubectl
+            echo "kubectl installed successfully."
+  
 
       - name: Checkout repository
         uses: actions/checkout@v4
