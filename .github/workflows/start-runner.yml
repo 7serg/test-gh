@@ -111,7 +111,7 @@ jobs:
   deploy:
     name: Deploy to EKS
     needs: [start-runner, build]
-    runs-on: ${{ needs.start-runner.outputs.label }}
+    runs-on: ${{ needs.start-runner.outputs.runner-label }}
     permissions:
       id-token: write
       contents: read
