@@ -118,19 +118,6 @@ jobs:
       - name: Install unzip
         run: sudo apt-get update && sudo apt-get install -y unzip
 
-      - name: Install AWS CLI
-        run: |
-          # Download the AWS CLI v2 installer
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-
-          # Unzip the installer
-          unzip awscliv2.zip
-
-          # Run the installer
-          sudo ./aws/install
-
-          # Confirm installation
-          aws --version
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4 
@@ -207,6 +194,6 @@ jobs:
         with:
           mode: stop
           github-token: ${{ secrets.GH_PAT }}
-          label: ${{ needs.start-runner.outputs.label }}
+          label: ${{ needs.start-runner.outputs.runner-label }}
           ec2-instance-id: ${{ needs.start-runner.outputs.instance-id}}
     
