@@ -72,29 +72,39 @@ jobs:
             echo "$(git rev-parse --short HEAD)" > commit_hash.txt
 
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4 
+      - name: Composite action for login to ECR and building an image
+        uses: ./github/my-custom-action
         with:
             role-to-assume: arn:aws:iam::585768185180:role/github_oidc_role
             aws-region: ${{ vars.AWS_REGION }}
+            ecr_repo_url: ${{ vars.ECR_REPO_URL }}
+            image_tag: ${{ steps.define-commit-hash.outputs.short_sha }}
 
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+    #   - name: Configure AWS credentials
+    #     uses: aws-actions/configure-aws-credentials@v4 
+    #     with:
+    #         role-to-assume: arn:aws:iam::585768185180:role/github_oidc_role
+    #         aws-region: ${{ vars.AWS_REGION }}
+    #         repository_name: test_app
+
 
     #   - name: Login to Amazon ECR
-    #     run: |
-    #         aws ecr get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin ${{ vars.ECR_REPO_URL }}
+    #     id: login-ecr
+    #     uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build, tag, and push docker image to Amazon ECR
-        env:
-            REGISTRY: ${{ vars.ECR_REPO_URL }}
-            REPOSITORY: test_app
-            IMAGE_TAG: ${{ steps.define-commit-hash.outputs.short_sha }}
-        run: |
-            docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
-            docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+    # #   - name: Login to Amazon ECR
+    # #     run: |
+    # #         aws ecr get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin ${{ vars.ECR_REPO_URL }}
+
+    #   - name: Build, tag, and push docker image to Amazon ECR
+    #     env:
+    #         REGISTRY: ${{ vars.ECR_REPO_URL }}
+    #         REPOSITORY: test_app
+    #         IMAGE_TAG: ${{ steps.define-commit-hash.outputs.short_sha }}
+    #     run: |
+    #         docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+    #         docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
 
   deploy:
@@ -117,6 +127,20 @@ jobs:
 
       - name: Install unzip
         run: sudo apt-get update && sudo apt-get install -y unzip
+
+
+      - name: Install AWS CLI
+        run: |
+          echo "Installing AWS CLI..."
+          if ! command -v aws &> /dev/null; then
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+            rm -rf awscliv2.zip aws
+            echo "AWS CLI installed successfully."
+          else
+            echo "AWS CLI is already installed."
+          fi
 
 
       - name: Configure AWS credentials

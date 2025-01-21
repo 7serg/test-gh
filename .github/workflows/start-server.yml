@@ -30,7 +30,7 @@ on:
         value: ${{ jobs.start-ec2-runner.outputs.label }}
       instance-id:
         description: "The EC2 instance ID"
-        value: ${{ jobs.start-ec2-runner.outputs.ec2-instance-id }}
+        value: ${{ jobs.start-ec2-runner.outputs.instance-id }}
 
 jobs:
   start-ec2-runner:
