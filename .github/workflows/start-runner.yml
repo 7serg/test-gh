@@ -79,6 +79,7 @@ jobs:
             aws-region: ${{ vars.AWS_REGION }}
             ecr_repo_url: ${{ vars.ECR_REPO_URL }}
             image_tag: ${{ steps.define-commit-hash.outputs.short_sha }}
+            repository_name: test_app
 
 
     #   - name: Configure AWS credentials
