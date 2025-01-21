@@ -73,7 +73,7 @@ jobs:
 
 
       - name: Composite action for login to ECR and building an image
-        uses: ./github/my-custom-action
+        uses: ./.github/my-custom-action
         with:
             role-to-assume: arn:aws:iam::585768185180:role/github_oidc_role
             aws-region: ${{ vars.AWS_REGION }}
