@@ -183,6 +183,11 @@ jobs:
 
     steps:
 
+      - name: Debug Outputs
+        run: |
+          echo "Runner Label: ${{ needs.start-runner.outputs.runner-label }}"
+          echo "Instance ID: ${{ needs.start-runner.outputs.instance-id }}"
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4 
         with:
@@ -192,6 +197,7 @@ jobs:
       - name: Stop EC2 runner
         uses: machulav/ec2-github-runner@v2
         with:
+          region: ${{ vars.AWS_REGION }}
           mode: stop
           github-token: ${{ secrets.GH_PAT }}
           label: ${{ needs.start-runner.outputs.runner-label }}
