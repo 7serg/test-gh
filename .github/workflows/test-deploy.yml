@@ -29,8 +29,8 @@ jobs:
             --region eu-central-1 \
             --name ${{ vars.CLUSTER_NAME }}
             echo "Updated config"
-            echo $KUBECONFIG
-            kubectl config get-contexts
+            sudo echo $KUBECONFIG
+            sudo kubectl config get-contexts
             echo "config get-contexts pass"   
             echo $KUBECONFIG
             echo "_________________"
