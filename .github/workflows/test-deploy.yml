@@ -3,7 +3,6 @@ name: Test Kubectl
 on:
   workflow_dispatch:
 
-
 jobs:
   deploy:
     runs-on: ["self-hosted", "Linux", "X64", "7itve"]
@@ -21,19 +20,21 @@ jobs:
             role-to-assume: arn:aws:iam::585768185180:role/github_oidc_role
             aws-region: ${{ vars.AWS_REGION }}
     
-
       - name: Update kubeconfig for EKS
         run: |
             echo "Updating kubeconfig for EKS..."
-            aws eks update-kubeconfig \
-            --region eu-central-1 \
-            --name ${{ vars.CLUSTER_NAME }}
-            echo "Updated config"
-            sudo echo $KUBECONFIG
-            sudo /usr/local/bin/kubectl config get-contexts
-            echo "config get-contexts pass"   
-            echo "_________________"
-            sudo /usr/local/bin/kubectl config current-context
-            echo "config current-context pass" 
-            /usr/local/bin/kubectl get nodes
+            mkdir -p /home/ubuntu/.kube
+            aws eks update-kubeconfig --region eu-central-1 --name ${{ vars.CLUSTER_NAME }} --kubeconfig /home/ubuntu/.kube/config
+            echo "Kubeconfig updated at /home/ubuntu/.kube/config"
+            sudo chown -R ubuntu:ubuntu /home/ubuntu/.kube
+            sudo chmod -R 600 /home/ubuntu/.kube/config
 
+      - name: Run kubectl commands as ubuntu user
+        run: |
+            echo "Running kubectl commands as ubuntu user..."
+            sudo -u ubuntu -i bash -c "
+              export KUBECONFIG=/home/ubuntu/.kube/config;
+              kubectl config get-contexts;
+              kubectl config current-context;
+              kubectl get nodes;
+            "
