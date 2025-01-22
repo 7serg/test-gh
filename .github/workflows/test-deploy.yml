@@ -30,5 +30,6 @@ jobs:
             export KUBECONFIG=/root/.kube/config
             echo $KUBECONFIG
             kubectl config get-contexts
-            echo "config get-contexts pass"  
+            echo "config get-contexts pass" 
+            kubectl get nodes 
 
