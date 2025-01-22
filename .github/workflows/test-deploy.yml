@@ -25,4 +25,6 @@ jobs:
             echo "Updating kubeconfig for EKS..."
 
             aws eks update-kubeconfig --region eu-central-1 --name ${{ vars.CLUSTER_NAME }} 
+            
             kubectl get nodes
+
