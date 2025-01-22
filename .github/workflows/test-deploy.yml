@@ -23,18 +23,6 @@ jobs:
       - name: Update kubeconfig for EKS
         run: |
             echo "Updating kubeconfig for EKS..."
-            mkdir -p /home/ubuntu/.kube
-            aws eks update-kubeconfig --region eu-central-1 --name ${{ vars.CLUSTER_NAME }} --kubeconfig /home/ubuntu/.kube/config
-            echo "Kubeconfig updated at /home/ubuntu/.kube/config"
-            sudo chown -R ubuntu:ubuntu /home/ubuntu/.kube
-            sudo chmod -R 600 /home/ubuntu/.kube/config
 
-      - name: Run kubectl commands as ubuntu user
-        run: |
-            echo "Running kubectl commands as ubuntu user..."
-            sudo -u ubuntu -i bash -c "
-              export KUBECONFIG=/home/ubuntu/.kube/config;
-              kubectl config get-contexts;
-              kubectl config current-context;
-              kubectl get nodes;
-            "
+            aws eks update-kubeconfig --region eu-central-1 --name ${{ vars.CLUSTER_NAME }} 
+            kubectl get nodes
