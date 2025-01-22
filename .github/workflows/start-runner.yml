@@ -181,27 +181,35 @@ jobs:
             --image-ids imageTag=${IMAGE_TAG} \
             || { echo "Image tag ${IMAGE_TAG} not found in ECR"; exit 1; }    
             
+      - name: Check login details
+        run: aws sts get-caller-identity
 
-      - name: Deploy application
-        env:
-            REGISTRY: ${{ vars.ECR_REPO_URL }}
-            REPOSITORY: test_app
-            IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
+      - name: Verify kubectl configuration
         run: |
-              echo "Deploying image: $REGISTRY/$REPOSITORY:$IMAGE_TAG"
+          kubectl config view
+          kubectl get nodes  
+
+
+    #   - name: Deploy application
+    #     env:
+    #         REGISTRY: ${{ vars.ECR_REPO_URL }}
+    #         REPOSITORY: test_app
+    #         IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
+    #     run: |
+    #           echo "Deploying image: $REGISTRY/$REPOSITORY:$IMAGE_TAG"
               
-              # Replace the image in deployment file
-              sed -i "s%image:.*%image: $REGISTRY/$REPOSITORY:$IMAGE_TAG%" kubernetes/deployment.yml
+    #           # Replace the image in deployment file
+    #           sed -i "s%image:.*%image: $REGISTRY/$REPOSITORY:$IMAGE_TAG%" kubernetes/deployment.yml
               
-              # Apply both deployment and service
-              kubectl apply -f kubernetes/deployment.yml
+    #           # Apply both deployment and service
+    #           kubectl apply -f kubernetes/deployment.yml
               
               
-              # Get LoadBalancer URL
-              echo "Waiting for LoadBalancer to be ready..."
-              sleep 60
-              echo "LoadBalancer URL:"
-              kubectl get service test-app-service -n default -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+    #           # Get LoadBalancer URL
+    #           echo "Waiting for LoadBalancer to be ready..."
+    #           sleep 60
+    #           echo "LoadBalancer URL:"
+    #           kubectl get service test-app-service -n default -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
 
 #   stop-runner:
 #     name: Stop self-hosted EC2 runner
