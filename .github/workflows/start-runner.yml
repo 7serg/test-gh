@@ -168,7 +168,14 @@ jobs:
             echo "Updating kubeconfig for EKS..."
             aws eks update-kubeconfig \
             --region eu-central-1 \
-            --name ${{ vars.CLUSTER_NAME }}   
+            --name ${{ vars.CLUSTER_NAME }}
+            echo "Updated config"
+            kubectl config get-contexts
+            echo "config get-contexts pass"   
+            echo $KUBECONFIG
+            echo "_________________"
+            kubectl config current-context
+            echo "config current-context pass" 
             kubectl get nodes
 
       - name: Verify image exists
