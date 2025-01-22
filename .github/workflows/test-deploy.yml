@@ -26,5 +26,8 @@ jobs:
 
             aws eks update-kubeconfig --region eu-central-1 --name ${{ vars.CLUSTER_NAME }} 
             
-            kubectl get nodes
+            echo "Updated config"
+            echo $KUBECONFIG
+            kubectl config get-contexts
+            echo "config get-contexts pass"  
 
