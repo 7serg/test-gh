@@ -1,0 +1,20 @@
+name: Linux runner
+
+on:
+  workflow_dispatch:
+
+jobs:
+  start-runner:
+    name: Start Server
+    uses: ./.github/workflows/start-server.yml
+    secrets:
+      github-token: ${{ secrets.GH_PAT }}
+    with:
+      aws-region: eu-central-1
+      role-to-assume: arn:aws:iam::585768185180:role/github_oidc_role
+      runner-ami: ${{ vars.RUNNER_AMI }}
+      instance-type: t2.micro
+      subnet-id: ${{ vars.SUBNET_ID }}
+      security-group-id: ${{ vars.SG_ID }}
+    permissions:
+      id-token: write
