@@ -190,6 +190,18 @@ jobs:
             pwd
             ls -al
 
+      - name: Set kubeconfig path
+        run: export KUBECONFIG=~/.kube/config
+
+      - name: Validate kubeconfig
+        run: |
+          echo "Validating kubeconfig..."
+          cat ~/.kube/config
+          kubectl config get-contexts
+          kubectl config current-context
+      
+          
+
       - name: Verify kubectl configuration
         run: |
           kubectl config view
