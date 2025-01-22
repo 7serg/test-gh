@@ -184,6 +184,12 @@ jobs:
       - name: Check login details
         run: aws sts get-caller-identity
 
+      - name: Check the user
+        run: |
+            whoami
+            pwd
+            ls -al
+
       - name: Verify kubectl configuration
         run: |
           kubectl config view
