@@ -1,0 +1,41 @@
+name: Test Kubectl
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_run_id:
+        description: 'Run ID of the Build Workflow'
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ["self-hosted", "Linux", "X64", "7itve"]
+
+    steps:
+      - name: Download commit hash artifact
+        uses: actions/download-artifact@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4 
+        with:
+            role-to-assume: arn:aws:iam::585768185180:role/github_oidc_role
+            aws-region: ${{ vars.AWS_REGION }}
+    
+
+      - name: Update kubeconfig for EKS
+        run: |
+            echo "Updating kubeconfig for EKS..."
+            aws eks update-kubeconfig \
+            --region eu-central-1 \
+            --name ${{ vars.CLUSTER_NAME }}
+            echo "Updated config"
+            echo $KUBECONFIG
+            kubectl config get-contexts
+            echo "config get-contexts pass"   
+            echo $KUBECONFIG
+            echo "_________________"
+            kubectl config current-context
+            echo "config current-context pass" 
+            kubectl get nodes
+
