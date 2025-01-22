@@ -193,6 +193,12 @@ jobs:
       - name: Set kubeconfig path
         run: export KUBECONFIG=~/.kube/config
 
+
+      - name: Set the current kubectl context
+        run: |
+          kubectl config use-context arn:aws:eks:eu-central-1:585768185180:cluster/Test-Skel
+          kubectl config current-context
+      
       - name: Validate kubeconfig
         run: |
           echo "Validating kubeconfig..."
