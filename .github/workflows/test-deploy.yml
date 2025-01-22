@@ -30,11 +30,10 @@ jobs:
             --name ${{ vars.CLUSTER_NAME }}
             echo "Updated config"
             sudo echo $KUBECONFIG
-            sudo kubectl config get-contexts
+            sudo /usr/local/bin/kubectl config get-contexts
             echo "config get-contexts pass"   
-            echo $KUBECONFIG
             echo "_________________"
-            kubectl config current-context
+            sudo /usr/local/bin/kubectl config current-context
             echo "config current-context pass" 
-            kubectl get nodes
+            /usr/local/bin/kubectl get nodes
 
