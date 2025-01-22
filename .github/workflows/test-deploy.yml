@@ -7,6 +7,9 @@ on:
 jobs:
   deploy:
     runs-on: ["self-hosted", "Linux", "X64", "7itve"]
+    permissions:
+        id-token: write
+        contents: read
 
     steps:
       - name: Download commit hash artifact
