@@ -2,11 +2,7 @@ name: Test Kubectl
 
 on:
   workflow_dispatch:
-    inputs:
-      build_run_id:
-        description: 'Run ID of the Build Workflow'
-        required: true
-        type: string
+
 
 jobs:
   deploy:
