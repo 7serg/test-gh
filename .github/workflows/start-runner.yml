@@ -48,69 +48,69 @@ jobs:
 #           subnet-id: ${{ vars.SUBNET_ID }}
 #           security-group-id: ${{ vars.SG_ID }}
 
-#   build:
-#     name: Build image
-#     needs: start-runner 
-#     runs-on: ${{ needs.start-runner.outputs.runner-label }}
-#     permissions:
-#       id-token: write
-#       contents: read
-#     outputs:
-#         image_tag: ${{ steps.define-commit-hash.outputs.short_sha }}
+  build:
+    name: Build image
+    needs: start-runner 
+    runs-on: ${{ needs.start-runner.outputs.runner-label }}
+    permissions:
+      id-token: write
+      contents: read
+    outputs:
+        image_tag: ${{ steps.define-commit-hash.outputs.short_sha }}
 
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-#       - name: List files
-#         run: ls -al
+      - name: List files
+        run: ls -al
 
-#       - name: Set outputs
-#         id: define-commit-hash
-#         run: |
-#             echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-#             echo "$(git rev-parse --short HEAD)" > commit_hash.txt
-
-
-#       - name: Composite action for login to ECR and building an image
-#         uses: ./.github/my-custom-action
-#         with:
-#             role-to-assume: arn:aws:iam::585768185180:role/github_oidc_role
-#             aws-region: ${{ vars.AWS_REGION }}
-#             ecr_repo_url: ${{ vars.ECR_REPO_URL }}
-#             image_tag: ${{ steps.define-commit-hash.outputs.short_sha }}
-#             repository_name: test_app
+      - name: Set outputs
+        id: define-commit-hash
+        run: |
+            echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+            echo "$(git rev-parse --short HEAD)" > commit_hash.txt
 
 
-    #   - name: Configure AWS credentials
-    #     uses: aws-actions/configure-aws-credentials@v4 
-    #     with:
-    #         role-to-assume: arn:aws:iam::585768185180:role/github_oidc_role
-    #         aws-region: ${{ vars.AWS_REGION }}
-    #         repository_name: test_app
+      - name: Composite action for login to ECR and building an image
+        uses: ./.github/my-custom-action
+        with:
+            role-to-assume: arn:aws:iam::585768185180:role/github_oidc_role
+            aws-region: ${{ vars.AWS_REGION }}
+            ecr_repo_url: ${{ vars.ECR_REPO_URL }}
+            image_tag: ${{ steps.define-commit-hash.outputs.short_sha }}
+            repository_name: test_app
 
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4 
+        with:
+            role-to-assume: arn:aws:iam::585768185180:role/github_oidc_role
+            aws-region: ${{ vars.AWS_REGION }}
+            repository_name: test_app
+
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
     #   - name: Login to Amazon ECR
-    #     id: login-ecr
-    #     uses: aws-actions/amazon-ecr-login@v2
-
-    # #   - name: Login to Amazon ECR
-    # #     run: |
-    # #         aws ecr get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin ${{ vars.ECR_REPO_URL }}
-
-    #   - name: Build, tag, and push docker image to Amazon ECR
-    #     env:
-    #         REGISTRY: ${{ vars.ECR_REPO_URL }}
-    #         REPOSITORY: test_app
-    #         IMAGE_TAG: ${{ steps.define-commit-hash.outputs.short_sha }}
     #     run: |
-    #         docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
-    #         docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+    #         aws ecr get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin ${{ vars.ECR_REPO_URL }}
+
+      - name: Build, tag, and push docker image to Amazon ECR
+        env:
+            REGISTRY: ${{ vars.ECR_REPO_URL }}
+            REPOSITORY: test_app
+            IMAGE_TAG: ${{ steps.define-commit-hash.outputs.short_sha }}
+        run: |
+            docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+            docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
 
   deploy:
     name: Deploy to EKS
-    needs: [start-runner]
+    needs: [start-runner, build]
     runs-on: ${{ needs.start-runner.outputs.runner-label }}
     permissions:
       id-token: write
@@ -118,9 +118,6 @@ jobs:
 
     steps:
 
-    #   - name: Setup kubectl on the node
-    #     uses: azure/setup-kubectl@v4
-    #     id: install
                
       - name: Install kubectl
         run: |
@@ -133,23 +130,6 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Install unzip
-        run: sudo apt-get update && sudo apt-get install -y unzip
-
-
-      - name: Install AWS CLI
-        run: |
-          echo "Installing AWS CLI..."
-          if ! command -v aws &> /dev/null; then
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip awscliv2.zip
-            sudo ./aws/install
-            rm -rf awscliv2.zip aws
-            echo "AWS CLI installed successfully."
-          else
-            echo "AWS CLI is already installed."
-          fi
 
 
       - name: Configure AWS credentials
@@ -169,15 +149,6 @@ jobs:
             aws eks update-kubeconfig \
             --region eu-central-1 \
             --name ${{ vars.CLUSTER_NAME }}
-            echo "Updated config"
-            echo $KUBECONFIG
-            kubectl config get-contexts
-            echo "config get-contexts pass"   
-            echo $KUBECONFIG
-            echo "_________________"
-            kubectl config current-context
-            echo "config current-context pass" 
-            kubectl get nodes
 
       - name: Verify image exists
         env:
@@ -189,89 +160,62 @@ jobs:
             --repository-name ${REPOSITORY} \
             --image-ids imageTag=${IMAGE_TAG} \
             || { echo "Image tag ${IMAGE_TAG} not found in ECR"; exit 1; }    
-            
-      - name: Check login details
-        run: aws sts get-caller-identity
 
-      - name: Check the user
-        run: |
-            whoami
-            pwd
-            ls -al
 
       - name: Set kubeconfig path
         run: export KUBECONFIG=~/.kube/config
 
 
-      - name: Set the current kubectl context
+      - name: Deploy application
+        env:
+            REGISTRY: ${{ vars.ECR_REPO_URL }}
+            REPOSITORY: test_app
+            IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
+            KUBECONFIG: /root/.kube/config
         run: |
-          kubectl config use-context arn:aws:eks:eu-central-1:585768185180:cluster/Test-Skel
-          kubectl config current-context
-      
-      - name: Validate kubeconfig
+              echo "Deploying image: $REGISTRY/$REPOSITORY:$IMAGE_TAG"
+              
+              # Replace the image in deployment file
+              sed -i "s%image:.*%image: $REGISTRY/$REPOSITORY:$IMAGE_TAG%" kubernetes/deployment.yml
+              
+              # Apply both deployment and service
+              kubectl apply -f kubernetes/deployment.yml
+              
+              
+              # Get LoadBalancer URL
+              echo "Waiting for LoadBalancer to be ready..."
+              sleep 60
+              echo "LoadBalancer URL:"
+              kubectl get service test-app-service -n default -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+
+  stop-runner:
+    name: Stop self-hosted EC2 runner
+    needs: [start-runner, build, deploy]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    if: ${{ always() }} 
+
+    steps:
+
+      - name: Debug Outputs
         run: |
-          echo "Validating kubeconfig..."
-          cat ~/.kube/config
-          kubectl config get-contexts
-          kubectl config current-context
-      
-          
+          echo "Runner Label: ${{ needs.start-runner.outputs.runner-label }}"
+          echo "Instance ID: ${{ needs.start-runner.outputs.instance-id }}"
 
-      - name: Verify kubectl configuration
-        run: |
-          kubectl config view
-          kubectl get nodes  
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4 
+        with:
+            role-to-assume: arn:aws:iam::585768185180:role/github_oidc_role
+            aws-region: ${{ vars.AWS_REGION }}
 
-
-    #   - name: Deploy application
-    #     env:
-    #         REGISTRY: ${{ vars.ECR_REPO_URL }}
-    #         REPOSITORY: test_app
-    #         IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
-    #     run: |
-    #           echo "Deploying image: $REGISTRY/$REPOSITORY:$IMAGE_TAG"
-              
-    #           # Replace the image in deployment file
-    #           sed -i "s%image:.*%image: $REGISTRY/$REPOSITORY:$IMAGE_TAG%" kubernetes/deployment.yml
-              
-    #           # Apply both deployment and service
-    #           kubectl apply -f kubernetes/deployment.yml
-              
-              
-    #           # Get LoadBalancer URL
-    #           echo "Waiting for LoadBalancer to be ready..."
-    #           sleep 60
-    #           echo "LoadBalancer URL:"
-    #           kubectl get service test-app-service -n default -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
-
-#   stop-runner:
-#     name: Stop self-hosted EC2 runner
-#     needs: [start-runner, build, deploy]
-#     runs-on: ubuntu-latest
-#     permissions:
-#       id-token: write
-#       contents: read
-#     if: ${{ always() }} 
-
-#     steps:
-
-#       - name: Debug Outputs
-#         run: |
-#           echo "Runner Label: ${{ needs.start-runner.outputs.runner-label }}"
-#           echo "Instance ID: ${{ needs.start-runner.outputs.instance-id }}"
-
-#       - name: Configure AWS credentials
-#         uses: aws-actions/configure-aws-credentials@v4 
-#         with:
-#             role-to-assume: arn:aws:iam::585768185180:role/github_oidc_role
-#             aws-region: ${{ vars.AWS_REGION }}
-
-#       - name: Stop EC2 runner
-#         uses: machulav/ec2-github-runner@v2
-#         with:
-#           region: ${{ vars.AWS_REGION }}
-#           mode: stop
-#           github-token: ${{ secrets.GH_PAT }}
-#           label: ${{ needs.start-runner.outputs.runner-label }}
-#           ec2-instance-id: ${{ needs.start-runner.outputs.instance-id}}
+      - name: Stop EC2 runner
+        uses: machulav/ec2-github-runner@v2
+        with:
+          region: ${{ vars.AWS_REGION }}
+          mode: stop
+          github-token: ${{ secrets.GH_PAT }}
+          label: ${{ needs.start-runner.outputs.runner-label }}
+          ec2-instance-id: ${{ needs.start-runner.outputs.instance-id}}
     
