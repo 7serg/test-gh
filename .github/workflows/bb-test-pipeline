@@ -1,0 +1,59 @@
+name: Bonusz Brigad App  Build
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: 
+      - codebuild-cicd-github-runner-${{ github.run_id }}-${{ github.run_attempt }} #["self-hosted", "Linux", "X64"]
+    # outputs:
+    #   image_tag: ${{ steps.define-commit-hash.outputs.short_sha }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: List files
+        run: ls -al
+
+      # - name: Set outputs
+      #   id: define-commit-hash
+      #   run: |
+      #     echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      #     echo "$(git rev-parse --short HEAD)" > commit_hash.txt
+
+      # - name: Login to Amazon ECR
+      #   run: |
+      #     aws ecr get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin ${{ vars.ECR_REPO_URL }}
+  
+      # - name: Build, tag, and push docker image to Amazon ECR
+      #   env:
+      #     REGISTRY: ${{ vars.ECR_REPO_URL }}
+      #     REPOSITORY: test_app
+      #     IMAGE_TAG: ${{ steps.define-commit-hash.outputs.short_sha }}
+      #   run: |
+      #       docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+      #       docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+      # - name: Upload commit hash artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: commit-hash
+      #     path: commit_hash.txt
+      #     retention-days: 5
+
+    #   - name: Configure AWS Credentials
+    #     uses: aws-actions/configure-aws-credentials@v2
+    #     with:
+    #       role-to-assume: arn:aws:iam::585768185180:role/ec2-ecr-access-role
+    #       aws-region: us-east-1
+    #   - name: Login to ECR
+    #     id: ecr
+    #     uses: jwalton/gh-ecr-login@v3
+    #     with:
+    #       region: us-east-1
+    #   - name: Push to ECR
+    #     run: |
+    #       docker tag my-image ${{ steps.ecr.outputs.account }}.dkr.ecr.us-east-1.amazonaws.com/my-image:v1
+    #       docker push ${{ steps.ecr.outputs.account }}.dkr.ecr.us-east-1.amazonaws.com/my-image:v1
+
+

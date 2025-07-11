@@ -19,34 +19,6 @@ jobs:
     permissions:
       id-token: write
 
-#   start-runner:
-#     name: Start self-hosted EC2 runner
-#     runs-on: ubuntu-latest
-#     permissions:
-#       id-token: write
-#       contents: read
-#     outputs:
-#       label: ${{ steps.start-ec2-runner.outputs.label }}
-#       ec2-instance-id: ${{ steps.start-ec2-runner.outputs.ec2-instance-id }}
-
-#     steps:
-#       - name: Configure AWS credentials
-#         uses: aws-actions/configure-aws-credentials@v4
-#         with:
-#           aws-region: eu-central-1
-#           role-to-assume: arn:aws:iam::585768185180:role/github_oidc_role
-#           role-session-name: testSession
-
-#       - name: Start EC2 runner
-#         id: start-ec2-runner
-#         uses: machulav/ec2-github-runner@v2
-#         with:
-#           mode: start
-#           github-token: ${{ secrets.GH_PAT }}
-#           ec2-image-id: ${{ vars.RUNNER_AMI }}
-#           ec2-instance-type: t2.micro
-#           subnet-id: ${{ vars.SUBNET_ID }}
-#           security-group-id: ${{ vars.SG_ID }}
 
   build:
     name: Build image
