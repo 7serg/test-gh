@@ -47,7 +47,9 @@ jobs:
             --region eu-central-1 \
             --name bonusz-brigad-DEV-EKS 
 
-
+      - name: List nodes
+        run: kubectl get nodes
+    
       # - name: Set outputs
       #   id: define-commit-hash
       #   run: |
