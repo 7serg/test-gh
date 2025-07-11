@@ -1,4 +1,4 @@
-name: Bonusz Brigad App  Build
+name: Bonusz Brigad App Build
 on: workflow_dispatch
 
 jobs:
